@@ -1,0 +1,45 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create an EIP for the vNIOS LAN1 interface",
+    "Metadata": {},
+    "Parameters": {
+        "vmName": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "niosPubIP": {
+            "Type": "AWS::EC2::EIP",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "vmName"
+                                    },
+                                    "-ip"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "AllocatId": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "niosPubIP",
+                    "AllocationId"
+                  ]
+            }
+        }
+    }
+}

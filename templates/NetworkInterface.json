@@ -1,0 +1,62 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create network interface for vNIOS instance",
+    "Metadata": {},
+    "Parameters": {
+        "vmName" : {
+            "Type" : "String"
+        },
+        "niosInt" : {
+            "Type" : "String"
+        },
+        "subnet" : {
+            "Type" : "String"
+        },
+        "group" : {
+            "Type" : "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "networkInterface": {
+            "Type": "AWS::EC2::NetworkInterface",
+            "Properties": {
+                "GroupSet": [
+                    {
+                        "Ref" : "group"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "subnet"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "vmName"
+                                    },
+                                    "-",
+                                    {
+                                        "Ref": "niosInt"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "InterfaceID": {
+            "Value": {
+                "Ref": "networkInterface"
+            }
+        }
+    }
+}

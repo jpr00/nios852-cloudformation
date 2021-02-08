@@ -1,0 +1,142 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates the vNIOS instance with input from root template.",
+    "Metadata": {},
+    "Parameters": {
+        "amiID": {
+            "Type": "String"
+        },
+        "instanceShape": {
+            "Type": "String"
+        },
+        "nic1": {
+            "Type": "String"
+        },
+        "nic2": {
+            "Type": "String"
+        },
+        "iamKey": {
+            "Type": "String"
+        },
+        "iamProfile": {
+            "Type": "String"
+        },
+        "vmName": {
+            "Type": "String"
+        },
+        "configSSH": {
+            "Type": "String"
+        },
+        "cloudLicense": {
+            "Type": "String"
+        },
+        "model": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {
+        "RemoteAccess": {
+            "Fn::Equals": [
+                {
+                    "Ref": "configSSH"
+                },
+                "Yes"
+            ]
+        },
+        "attachProfile": {
+            "Fn::Not": [
+                {
+                    "Fn::Equals": [
+                        {
+                            "Ref": "iamProfile"
+                        },
+                        "None"
+                    ]
+                }
+            ]
+        }
+    },
+    "Resources": {
+        "nios01": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                            "VolumeSize": "250",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "ImageId": {
+                    "Ref": "amiID"
+                },
+                "InstanceType": {
+                    "Ref": "instanceShape"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "DeviceIndex": "0",
+                        "NetworkInterfaceId": {
+                            "Ref": "nic1"
+                        }
+                    },
+                    {
+                        "DeviceIndex": "1",
+                        "NetworkInterfaceId": {
+                            "Ref": "nic2"
+                        }
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "iamKey"
+                },
+                "IamInstanceProfile": {
+                    "Fn::If": [
+                        "attachProfile",
+                        {
+                          "Ref" : "iamProfile"
+                        },
+                        {
+                            "Ref" : "AWS::NoValue"
+                        }
+                      ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "vmName"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            " ",
+                            [
+                                {
+                                    "Fn::If": [
+                                        "RemoteAccess",
+                                        "remote_console_enabled: y\ntemp_license: enterprise dns",
+                                        "remote_console_enabled: n\ntemp_license: enterprise dns"
+                                    ]
+                                },
+                                {
+                                    "Ref": "cloudLicense"
+                                },
+                                "nios",
+                                {
+                                    "Ref": "model"
+                                }
+                            ]
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}

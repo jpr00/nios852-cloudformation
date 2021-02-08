@@ -1,0 +1,632 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "This template deploys a vNIOS 8.5.2 instance with public IP (optional) and Security Group.",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Network Configuration"
+          },
+          "Parameters": [
+            "VpcID",
+            "SubnetLAN1",
+            "SubnetMGMT",
+            "PublicIP"
+          ]
+        },
+        {
+          "Label": {
+            "default": "vNIOS EC2 Instance Configuration"
+          },
+          "Parameters": [
+            "InstanceName",
+            "NIOSmodel",
+            "KeyPair",
+            "CreateRole"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Remote Access"
+          },
+          "Parameters": [
+            "AllowSSH",
+            "AllowedIPforSSH"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "VpcID": {
+          "default": "Which VPC should the instance be deployed to?"
+        },
+        "SubnetLAN1": {
+          "default": "Which subnet should be used for the vNIOS LAN1 interface?"
+        },
+        "SubnetMGMT": {
+          "default": "Which subnet should be used for the vNIOS MGMT interface?"
+        },
+        "PublicIP": {
+          "default": "Do you want to create a public IP address for your vNIOS instance?"
+        },
+        "InstanceName": {
+          "default": "Enter a name for your vNIOS instance."
+        },
+        "NIOSmodel": {
+          "default": "Select a model for your vNIOS instance."
+        },
+        "KeyPair": {
+          "default": "Choose an EC2 Key Pair to use with this instance."
+        },
+        "CreateRole": {
+          "default": "Do you want to create an IAM role to use for Infoblox vDiscovery?"
+        },
+        "AllowSSH": {
+          "default": "Do you want to enable remote access (SSH) for this instance?"
+        },
+        "AllowedIPforSSH": {
+          "default": "Enter a source IP address or network to allow for SSH connections."
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "VpcID": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Select from your existing VPCs."
+    },
+    "SubnetLAN1": {
+      "Description": "Select a Subnet for the vNIOS LAN1 interface. Subnets must be from the chosen VPC.",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "SubnetMGMT": {
+      "Description": "Select a Subnet for the vNIOS MGMT interface. Subnets must be from the chosen VPC. Do not use the same subnet as the LAN1 interface.",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PublicIP": {
+      "Type": "String",
+      "Default": "No",
+      "AllowedValues": [
+        "No",
+        "Yes"
+      ],
+      "Description": "Select Yes to create a public IP."
+    },
+    "AllowSSH": {
+      "Type": "String",
+      "Default": "No",
+      "AllowedValues": [
+        "No",
+        "Yes"
+      ]
+    },
+    "AllowedIPforSSH": {
+      "Type": "String",
+      "Description": "This must be in CIDR format, for example 10.10.10.34/32 or 10.10.10.0/24. Or, leave this blank if you will not enable SSH access.",
+      "ConstraintDescription": "You must enter an IP or network in CIDR format, for example 10.1.0.0/16",
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$|^$"
+    },
+    "InstanceName": {
+      "Type": "String",
+      "Default": "vnios-01"
+    },
+    "NIOSmodel": {
+      "Type": "String",
+      "Default": "TEv825",
+      "AllowedValues": [
+        "TEv825",
+        "TEv1425",
+        "TEv2225",
+        "TEv4025",
+        "CPv805",
+        "CPv1405",
+        "CPv2205"
+      ],
+      "Description": "Supported models are: TE-V825, TE-V1425, TE-4025, TE-V2225, CP-V805, CP-V1405, and CP-V2205. This will determine the EC2 shape and appropriate license options."
+    },
+    "KeyPair": {
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "CreateRole": {
+      "Type": "String",
+      "Default": "No",
+      "AllowedValues": [
+        "No",
+        "Yes"
+      ],
+      "Description": "Selecting yes will create a role and policy to use for vDiscovery."
+    }
+  },
+  "Conditions": {
+    "CreatePubIP": {
+      "Fn::Equals": [
+        {
+          "Ref": "PublicIP"
+        },
+        "Yes"
+      ]
+    },
+    "CreateIAMRole": {
+      "Fn::Equals": [
+        {
+          "Ref": "CreateRole"
+        },
+        "Yes"
+      ]
+    },
+    "RemoteAccess": {
+      "Fn::Equals": [
+        {
+          "Ref": "AllowSSH"
+        },
+        "Yes"
+      ]
+    }
+  },
+  "Mappings": {
+    "AMIMap": {
+      "us-east-1": {
+        "AMINUM": "ami-07fdc8a2c30fd83c5"
+      },
+      "us-east-2": {
+        "AMINUM": "N/A"
+      },
+      "us-west-1": {
+        "AMINUM": "N/A"
+      },
+      "us-west-2": {
+        "AMINUM": "N/A"
+      },
+      "af-south-1": {
+        "AMINUM": "N/A"
+      },
+      "ap-east-1": {
+        "AMINUM": "N/A"
+      },
+      "ap-south-1": {
+        "AMINUM": "N/A"
+      },
+      "ap-northeast-1": {
+        "AMINUM": "N/A"
+      },
+      "ap-norhteast-2": {
+        "AMINUM": "N/A"
+      },
+      "ap-southeast-1": {
+        "AMINUM": "N/A"
+      },
+      "ap-southeast-2": {
+        "AMINUM": "N/A"
+      },
+      "ca-central-1": {
+        "AMINUM": "N/A"
+      },
+      "eu-central-1": {
+        "AMINUM": "N/A"
+      },
+      "eu-west-1": {
+        "AMINUM": "N/A"
+      },
+      "eu-west-2": {
+        "AMINUM": "N/A"
+      },
+      "eu-west-3": {
+        "AMINUM": "N/A"
+      },
+      "eu-south-1": {
+        "AMINUM": "N/A"
+      },
+      "eu-north-1": {
+        "AMINUM": "N/A"
+      },
+      "me-south-1": {
+        "AMINUM": "N/A"
+      },
+      "sa-east-1": {
+        "AMINUM": "N/A"
+      }
+    },
+    "ShapeMap": {
+      "us-east-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "us-east-2": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "us-west-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "us-west-2": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "af-south-1": {
+        "TEv825": "i3.large",
+        "TEv1425": "i3.xlarge",
+        "TEv2225": "i3.2xlarge",
+        "TEv4025": "d2.4xlarge",
+        "CPv805": "i3.large",
+        "CPv1405": "i3.xlarge",
+        "CPv2205": "i3.2xlarge"
+      },
+      "ap-east-1": {
+        "TEv825": "i3.large",
+        "TEv1425": "i3.xlarge",
+        "TEv2225": "i3.2xlarge",
+        "TEv4025": "d2.4xlarge",
+        "CPv805": "i3.large",
+        "CPv1405": "i3.xlarge",
+        "CPv2205": "i3.2xlarge"
+      },
+      "ap-south-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "ap-northeast-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "ap-northeast-2": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "ap-southeast-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "ap-southeast-2": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "ca-central-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "eu-central-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "eu-west-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "eu-west-2": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "eu-west-3": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      },
+      "eu-south-1": {
+        "TEv825": "i3.large",
+        "TEv1425": "i3.xlarge",
+        "TEv2225": "i3.2xlarge",
+        "TEv4025": "d2.4xlarge",
+        "CPv805": "i3.large",
+        "CPv1405": "i3.xlarge",
+        "CPv2205": "i3.2xlarge"
+      },
+      "eu-north-1": {
+        "TEv825": "i3.large",
+        "TEv1425": "i3.xlarge",
+        "TEv2225": "i3.2xlarge",
+        "TEv4025": "d2.4xlarge",
+        "CPv805": "i3.large",
+        "CPv1405": "i3.xlarge",
+        "CPv2205": "i3.2xlarge"
+      },
+      "me-south-1": {
+        "TEv825": "i3.large",
+        "TEv1425": "i3.xlarge",
+        "TEv2225": "i3.2xlarge",
+        "TEv4025": "d2.4xlarge",
+        "CPv805": "i3.large",
+        "CPv1405": "i3.xlarge",
+        "CPv2205": "i3.2xlarge"
+      },
+      "sa-east-1": {
+        "TEv825": "r4.large",
+        "TEv1425": "r4.xlarge",
+        "TEv2225": "r4.2xlarge",
+        "TEv4025": "r4.4xlarge",
+        "CPv805": "r4.large",
+        "CPv1405": "r4.xlarge",
+        "CPv2205": "r4.2xlarge"
+      }
+    },
+    "ModelMap": {
+      "TEv825": {
+        "Model": "IB-V825",
+        "CloudLic": "cloud"
+      },
+      "TEv1425": {
+        "Model": "IB-V1425",
+        "CloudLic": "cloud"
+      },
+      "TEv2225": {
+        "Model": "IB-V2225",
+        "CloudLic": "cloud"
+      },
+      "CPv805": {
+        "Model": "CP-V805",
+        "CloudLic": "cloud_api"
+      },
+      "CPv1405": {
+        "Model": "CP-V1405",
+        "CloudLic": "cloud_api"
+      },
+      "CPv2205": {
+        "Model": "CP-V2205",
+        "CloudLic": "cloud_api"
+      },
+      "TEv4025": {
+        "Model": "IB-V4025",
+        "CloudLic": "cloud"
+      }
+    }
+  },
+  "Resources": {
+    "IAMRole": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": "CreateIAMRole",
+      "Properties": {
+        "Parameters": {
+          "Name": {
+            "Ref": "InstanceName"
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/vDiscoveryRole.json"
+      }
+    },
+    "securityGroup": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "Name": {
+            "Ref": "InstanceName"
+          },
+          "Vpc": {
+            "Ref": "VpcID"
+          },
+          "CreateSSH": {
+            "Ref": "AllowSSH"
+          },
+          "IPforSSH": {
+            "Ref": "AllowedIPforSSH"
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/SecurityGroup.json"
+      }
+    },
+    "niosPublicIP": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": "CreatePubIP",
+      "Properties": {
+        "Parameters": {
+          "vmName": {
+            "Ref": "InstanceName"
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/PublicIP.json"
+      }
+    },
+    "networkInt1": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "vmName": {
+            "Ref": "InstanceName"
+          },
+          "niosInt": "mgmt",
+          "subnet": {
+            "Ref": "SubnetMGMT"
+          },
+          "group": {
+            "Fn::GetAtt": [
+              "securityGroup",
+              "Outputs.SecurityGroupID"
+            ]
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/NetworkInterface.json"
+      }
+    },
+    "networkInt2": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "vmName": {
+            "Ref": "InstanceName"
+          },
+          "niosInt": "lan1",
+          "subnet": {
+            "Ref": "SubnetLAN1"
+          },
+          "group": {
+            "Fn::GetAtt": [
+              "securityGroup",
+              "Outputs.SecurityGroupID"
+            ]
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/NetworkInterface.json"
+      }
+    },
+    "nios01": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters" : {
+          "amiID" : {
+            "Fn::FindInMap": [
+              "AMIMap",
+              {
+                "Ref": "AWS::Region"
+              },
+              "AMINUM"
+            ]
+          },
+          "instanceShape" : {
+            "Fn::FindInMap": [
+              "ShapeMap",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "NIOSmodel"
+              }
+            ]
+          },
+          "nic1" : {
+            "Fn::GetAtt": [
+              "networkInt1",
+              "Outputs.InterfaceID"
+            ]
+          },
+          "nic2" : {
+            "Fn::GetAtt": [
+              "networkInt2",
+              "Outputs.InterfaceID"
+            ]
+          },
+          "iamKey" : {
+            "Ref": "KeyPair"
+          },
+          "iamProfile" : {
+            "Fn::If": [
+              "CreateIAMRole",
+              {
+                "Fn::GetAtt": [
+                  "IAMRole",
+                  "Outputs.InstanceProfile"
+                ]
+              },
+              "None"
+            ]
+          },
+          "vmName" : {
+            "Ref": "InstanceName"
+          },
+          "configSSH" : {
+            "Ref" : "AllowSSH"
+          },
+          "cloudLicense" : {
+            "Fn::FindInMap": [
+              "ModelMap",
+              {
+                "Ref": "NIOSmodel"
+              },
+              "CloudLic"
+            ]
+          },
+          "model" : {
+            "Fn::FindInMap": [
+              "ModelMap",
+              {
+                "Ref": "NIOSmodel"
+              },
+              "Model"
+            ]
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/niosInstance.json"
+      }
+    },
+    "pubIPattach1": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": "CreatePubIP",
+      "DependsOn": "nios01",
+      "Properties": {
+        "Parameters": {
+          "eipID": {
+            "Fn::GetAtt": [
+              "niosPublicIP",
+              "Outputs.AllocatId"
+            ]
+          },
+          "nicID": {
+            "Fn::GetAtt": [
+              "networkInt2",
+              "Outputs.InterfaceID"
+            ]
+          }
+        },
+        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/attachEIP.json"
+      }
+    }
+  },
+  "Outputs": {}
+}

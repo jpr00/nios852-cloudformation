@@ -1,0 +1,87 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates an IAM Role with Policy for Infoblox vDiscovery",
+    "Metadata": {},
+    "Parameters": {
+        "Name": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "vDiscRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "Name"
+                                    },
+                                    "vdiscovery"
+                                ]
+                            ]
+                        },
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:DescribeAddresses",
+                                        "ec2:DescribeInstances",
+                                        "ec2:DescribeNetworkInterfaces",
+                                        "ec2:DescribeVpcs",
+                                        "ec2:DescribeSubnets",
+                                        "ec2:DescribeRouteTables"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "iam:GetUser",
+                                    "Resource": "arn:aws:iam::*:user/*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "VDiscInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "vDiscRole"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "InstanceProfile": {
+            "Value": {
+                "Ref": "VDiscInstanceProfile"
+            }
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Associates EIP with LAN1 interface of vNIOS instance",
+    "Metadata": {},
+    "Parameters": {
+        "eipID": {
+            "Type": "String"
+        },
+        "nicID": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "pubIPattach": {
+            "Type": "AWS::EC2::EIPAssociation",
+            "Properties": {
+                "AllocationId": {
+                    "Ref": "eipID"
+                },
+                "NetworkInterfaceId": {
+                    "Ref": "nicID"
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}

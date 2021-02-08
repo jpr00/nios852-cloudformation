@@ -1,0 +1,150 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates a security group for the vNIOS instance",
+    "Metadata": {},
+    "Parameters": {
+        "Name": {
+            "Type": "String"
+        },
+        "Vpc" : {
+            "Type" : "AWS::EC2::VPC::Id"
+        },
+        "CreateSSH": {
+            "Type": "String"
+        },
+        "IPforSSH": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {
+        "RemoteAccess": {
+            "Fn::Equals": [
+                {
+                    "Ref": "CreateSSH"
+                },
+                "Yes"
+            ]
+        },
+        "IPforSSH": {
+            "Fn::Not": [
+                {
+                    "Fn::Equals": [
+                        {
+                            "Ref": "IPforSSH"
+                        },
+                        ""
+                    ]
+                }
+            ]
+        },
+        "CreateSSHRule": {
+            "Fn::And": [
+                {
+                    "Condition": "RemoteAccess"
+                },
+                {
+                    "Condition": "IPforSSH"
+                }
+            ]
+        }
+    },
+    "Resources": {
+        "securityGroup1": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security group for commonly used NIOS ports.",
+                "GroupName": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "Name"
+                            },
+                            "-sg"
+                        ]
+                    ]
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "HTTPS"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 53,
+                        "ToPort": 53,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "DNS"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 53,
+                        "ToPort": 53,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "DNS"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 1194,
+                        "ToPort": 1194,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Grid"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": 2114,
+                        "ToPort": 2114,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Grid"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "Name"
+                                    },
+                                    "-sg"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "SSHrule": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Condition": "CreateSSHRule",
+            "Properties": {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "CidrIp": {
+                    "Ref": "IPforSSH"
+                },
+                "Description": "SSH",
+                "GroupId": {
+                    "Ref": "securityGroup1"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "SecurityGroupID": {
+            "Value": {
+                "Ref": "securityGroup1"
+            }
+        }
+    }
+}
