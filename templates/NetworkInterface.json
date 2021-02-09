@@ -57,6 +57,14 @@
             "Value": {
                 "Ref": "networkInterface"
             }
+        },
+        "primaryIP": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "networkInterface",
+                    "PrimaryPrivateIpAddress"
+                  ]
+            }
         }
     }
 }
