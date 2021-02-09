@@ -3,16 +3,16 @@
     "Description": "Creates a security group for the vNIOS instance",
     "Metadata": {},
     "Parameters": {
-        "Name": {
+        "InstanceName": {
             "Type": "String"
         },
-        "Vpc" : {
+        "VpcID" : {
             "Type" : "AWS::EC2::VPC::Id"
         },
-        "CreateSSH": {
+        "AllowSSH": {
             "Type": "String"
         },
-        "IPforSSH": {
+        "AllowedIPforSSH": {
             "Type": "String"
         }
     },
@@ -21,7 +21,7 @@
         "RemoteAccess": {
             "Fn::Equals": [
                 {
-                    "Ref": "CreateSSH"
+                    "Ref": "AllowSSH"
                 },
                 "Yes"
             ]
@@ -31,7 +31,7 @@
                 {
                     "Fn::Equals": [
                         {
-                            "Ref": "IPforSSH"
+                            "Ref": "AllowedIPforSSH"
                         },
                         ""
                     ]
@@ -59,7 +59,7 @@
                         "",
                         [
                             {
-                                "Ref": "Name"
+                                "Ref": "InstanceName"
                             },
                             "-sg"
                         ]
@@ -103,7 +103,7 @@
                     }
                 ],
                 "VpcId": {
-                    "Ref": "Vpc"
+                    "Ref": "VpcID"
                 },
                 "Tags": [
                     {
@@ -113,7 +113,7 @@
                                 "",
                                 [
                                     {
-                                        "Ref": "Name"
+                                        "Ref": "InstanceName"
                                     },
                                     "-sg"
                                 ]
@@ -131,7 +131,7 @@
                 "FromPort": 22,
                 "ToPort": 22,
                 "CidrIp": {
-                    "Ref": "IPforSSH"
+                    "Ref": "AllowedIPforSSH"
                 },
                 "Description": "SSH",
                 "GroupId": {

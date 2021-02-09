@@ -445,7 +445,7 @@
       "Condition": "CreateIAMRole",
       "Properties": {
         "Parameters": {
-          "Name": {
+          "InstanceName": {
             "Ref": "InstanceName"
           }
         },
@@ -456,16 +456,16 @@
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "Parameters": {
-          "Name": {
+          "InstanceName": {
             "Ref": "InstanceName"
           },
-          "Vpc": {
+          "VpcID": {
             "Ref": "VpcID"
           },
-          "CreateSSH": {
+          "AllowSSH": {
             "Ref": "AllowSSH"
           },
-          "IPforSSH": {
+          "AllowedIPforSSH": {
             "Ref": "AllowedIPforSSH"
           }
         },
@@ -477,7 +477,7 @@
       "Condition": "CreatePubIP",
       "Properties": {
         "Parameters": {
-          "vmName": {
+          "InstanceName": {
             "Ref": "InstanceName"
           }
         },
@@ -488,7 +488,7 @@
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "Parameters": {
-          "vmName": {
+          "InstanceName": {
             "Ref": "InstanceName"
           },
           "niosInt": "mgmt",
@@ -509,7 +509,7 @@
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
         "Parameters": {
-          "vmName": {
+          "InstanceName": {
             "Ref": "InstanceName"
           },
           "niosInt": "lan1",
@@ -562,7 +562,7 @@
               "Outputs.InterfaceID"
             ]
           },
-          "iamKey" : {
+          "KeyPair" : {
             "Ref": "KeyPair"
           },
           "iamProfile" : {
@@ -577,10 +577,10 @@
               "None"
             ]
           },
-          "vmName" : {
+          "InstanceName" : {
             "Ref": "InstanceName"
           },
-          "configSSH" : {
+          "AllowSSH" : {
             "Ref" : "AllowSSH"
           },
           "cloudLicense" : {

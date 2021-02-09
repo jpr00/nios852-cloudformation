@@ -15,16 +15,16 @@
         "nic2": {
             "Type": "String"
         },
-        "iamKey": {
+        "KeyPair": {
             "Type": "String"
         },
         "iamProfile": {
             "Type": "String"
         },
-        "vmName": {
+        "InstanceName": {
             "Type": "String"
         },
-        "configSSH": {
+        "AllowSSH": {
             "Type": "String"
         },
         "cloudLicense": {
@@ -39,7 +39,7 @@
         "RemoteAccess": {
             "Fn::Equals": [
                 {
-                    "Ref": "configSSH"
+                    "Ref": "AllowSSH"
                 },
                 "Yes"
             ]
@@ -91,7 +91,7 @@
                     }
                 ],
                 "KeyName": {
-                    "Ref": "iamKey"
+                    "Ref": "KeyPair"
                 },
                 "IamInstanceProfile": {
                     "Fn::If": [
@@ -108,7 +108,7 @@
                     {
                         "Key": "Name",
                         "Value": {
-                            "Ref": "vmName"
+                            "Ref": "InstanceName"
                         }
                     }
                 ],

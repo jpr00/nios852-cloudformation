@@ -3,7 +3,7 @@
     "Description": "Create network interface for vNIOS instance",
     "Metadata": {},
     "Parameters": {
-        "vmName" : {
+        "InstanceName" : {
             "Type" : "String"
         },
         "niosInt" : {
@@ -38,7 +38,7 @@
                                 "",
                                 [
                                     {
-                                        "Ref": "vmName"
+                                        "Ref": "InstanceName"
                                     },
                                     "-",
                                     {

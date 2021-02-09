@@ -3,7 +3,7 @@
     "Description": "Creates an IAM Role with Policy for Infoblox vDiscovery",
     "Metadata": {},
     "Parameters": {
-        "Name": {
+        "InstanceName": {
             "Type": "String"
         }
     },
@@ -34,9 +34,12 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "Name"
+                                        "Ref": "InstanceName"
                                     },
-                                    "vdiscovery"
+                                    "vdiscovery",
+                                    {
+                                        "Ref" : "AWS::Region"
+                                    }
                                 ]
                             ]
                         },
