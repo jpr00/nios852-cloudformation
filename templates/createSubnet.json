@@ -1,0 +1,90 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Metadata": {},
+    "Parameters": {
+        "availZone": {
+            "Type": "String"
+        },
+        "SubnetCIDR": {
+            "Type": "String"
+        },
+        "VPCName": {
+            "Type": "String"
+        },
+        "niosInt": {
+            "Type": "String"
+        },
+        "Vpc": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {
+        "setAZ": {
+            "Fn::Not": [
+                {
+                    "Fn::Equals": [
+                        {
+                            "Ref": "availZone"
+                        },
+                        ""
+                    ]
+                }
+            ]
+        }
+    },
+    "Resources": {
+        "subnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::If" : [
+                        "setAZ",
+                        {"Ref" : "availZone"},
+                        {"Ref" : "AWS::NoValue"}
+                      ]
+                },
+                "CidrBlock": {
+                    "Ref": "SubnetCIDR"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "_",
+                                [
+                                    {
+                                        "Ref": "VPCName"
+                                    },
+                                    {
+                                        "Ref": "niosInt"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "SubnetID": {
+            "Value": {
+                "Ref": "subnet"
+            }
+        },
+        "availZone": {
+            "Value": {
+                "Fn::GetAtt": [
+                "subnet",
+                "AvailabilityZone"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This tempaltes creates a VPC.",
+    "Metadata": {},
+    "Parameters": {
+        "VPCCIDR": {
+            "Type": "String"
+        },
+        "VPCName": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "newVpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "VPCCIDR"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "VPCName"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "VpcID": {
+            "Value": {
+                "Ref": "newVpc"
+            }
+        }
+    }
+}

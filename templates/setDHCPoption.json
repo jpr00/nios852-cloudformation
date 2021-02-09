@@ -1,0 +1,57 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Metadata": {},
+    "Parameters": {
+        "VPCName": {
+            "Type": "String"
+        },
+        "Vpc": {
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "lan1IP": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "optionSet": {
+            "Type": "AWS::EC2::DHCPOptions",
+            "Properties": {
+                "DomainNameServers": [ {
+                    "Ref": "lan1IP"
+                }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VPCName"
+                                    },
+                                    "-NameServer"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "associateOptions": {
+            "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+            "Properties": {
+                "DhcpOptionsId": {
+                    "Ref": "optionSet"
+                },
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}

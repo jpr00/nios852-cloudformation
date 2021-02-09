@@ -1,0 +1,114 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates an Internet Gateway, associates it with a VPC, and creates a route table and routes.",
+    "Metadata": {},
+    "Parameters": {
+        "VPCName": {
+            "Type": "String"
+        },
+        "Vpc": {
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "subnet1": {
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "subnet2": {
+            "Type": "AWS::EC2::Subnet::Id"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "gateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VPCName"
+                                    },
+                                    "-igw"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "igwAttach": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "gateway"
+                },
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            }
+        },
+        "routeTab1": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "VPCName"
+                                    },
+                                    "-rt1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            }
+        },
+        "route01": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "gateway"
+                },
+                "RouteTableId": {
+                    "Ref": "routeTab1"
+                }
+            }
+        },
+        "subnet1RouteTable": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "routeTab1"
+                },
+                "SubnetId": {
+                    "Ref": "subnet1"
+                }
+            }
+        },
+        "subnet2RouteTable": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "routeTab1"
+                },
+                "SubnetId": {
+                    "Ref": "subnet2"
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}
