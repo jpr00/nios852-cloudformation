@@ -449,7 +449,7 @@
             "Ref": "InstanceName"
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/vDiscoveryRole.json"
+        "TemplateURL": "./vDiscoveryRole.json"
       }
     },
     "securityGroup": {
@@ -469,7 +469,7 @@
             "Ref": "AllowedIPforSSH"
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/SecurityGroup.json"
+        "TemplateURL": "./SecurityGroup.json"
       }
     },
     "niosPublicIP": {
@@ -481,7 +481,7 @@
             "Ref": "InstanceName"
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/PublicIP.json"
+        "TemplateURL": "./PublicIP.json"
       }
     },
     "networkInt1": {
@@ -502,7 +502,7 @@
             ]
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/NetworkInterface.json"
+        "TemplateURL": "./NetworkInterface.json"
       }
     },
     "networkInt2": {
@@ -523,7 +523,7 @@
             ]
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/NetworkInterface.json"
+        "TemplateURL": "./NetworkInterface.json"
       }
     },
     "nios01": {
@@ -602,7 +602,7 @@
             ]
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/niosInstance.json"
+        "TemplateURL": "./niosInstance.json"
       }
     },
     "pubIPattach1": {
@@ -624,7 +624,7 @@
             ]
           }
         },
-        "TemplateURL": "https://vnios852deployment.s3.amazonaws.com/attachEIP.json"
+        "TemplateURL": "./attachEIP.json"
       }
     }
   },
