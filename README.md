@@ -10,7 +10,7 @@
 git clone https://github.com/jpr00/nios852-cloudformation
 cd nios852-cloudformation/templates/
 ```
-* Package local paths referenced by template and upload artifacts to S3 [cloudformation package](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html)
+* Package local paths referenced by template and upload artifacts to S3 using [cloudformation package](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html)
 ```aws cloudformation package --template-file ./vNIOS_existingVPC_master.json --s3-bucket <Name-of-your-S3-bucket> --output-template-file packaged-vNIOS_master.json --use-json --region <Select_region>```
 * To deploy vNIOS with a new VPC, replace ```--template-file ./vNIOS_existingVPC_master.json``` with ```--template-file ./vNIOS_NewVPC_master.json```
 
