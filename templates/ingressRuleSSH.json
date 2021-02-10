@@ -1,0 +1,33 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates an ingress rule to allow SSH",
+    "Metadata": {},
+    "Parameters": {
+        "group": {
+            "Type": "String"
+        },
+        "AllowedIPforSSH": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "SSHrule": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "CidrIp": {
+                    "Ref": "AllowedIPforSSH"
+                },
+                "Description": "SSH",
+                "GroupId": {
+                    "Ref": "group"
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}

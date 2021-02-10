@@ -6,49 +6,12 @@
         "InstanceName": {
             "Type": "String"
         },
-        "VpcID" : {
-            "Type" : "AWS::EC2::VPC::Id"
-        },
-        "AllowSSH": {
-            "Type": "String"
-        },
-        "AllowedIPforSSH": {
-            "Type": "String"
+        "VpcID": {
+            "Type": "AWS::EC2::VPC::Id"
         }
     },
     "Mappings": {},
-    "Conditions": {
-        "RemoteAccess": {
-            "Fn::Equals": [
-                {
-                    "Ref": "AllowSSH"
-                },
-                "Yes"
-            ]
-        },
-        "IPforSSH": {
-            "Fn::Not": [
-                {
-                    "Fn::Equals": [
-                        {
-                            "Ref": "AllowedIPforSSH"
-                        },
-                        ""
-                    ]
-                }
-            ]
-        },
-        "CreateSSHRule": {
-            "Fn::And": [
-                {
-                    "Condition": "RemoteAccess"
-                },
-                {
-                    "Condition": "IPforSSH"
-                }
-            ]
-        }
-    },
+    "Conditions": {},
     "Resources": {
         "securityGroup1": {
             "Type": "AWS::EC2::SecurityGroup",
@@ -121,22 +84,6 @@
                         }
                     }
                 ]
-            }
-        },
-        "SSHrule": {
-            "Type": "AWS::EC2::SecurityGroupIngress",
-            "Condition": "CreateSSHRule",
-            "Properties": {
-                "IpProtocol": "tcp",
-                "FromPort": 22,
-                "ToPort": 22,
-                "CidrIp": {
-                    "Ref": "AllowedIPforSSH"
-                },
-                "Description": "SSH",
-                "GroupId": {
-                    "Ref": "securityGroup1"
-                }
             }
         }
     },

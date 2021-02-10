@@ -228,6 +228,28 @@
         },
         "Yes"
       ]
+    },
+    "IPforSSH": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AllowedIPforSSH"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "CreateSSHRule": {
+      "Fn::And": [
+        {
+          "Condition": "RemoteAccess"
+        },
+        {
+          "Condition": "IPforSSH"
+        }
+      ]
     }
   },
   "Mappings": {
@@ -624,15 +646,27 @@
               "vpc01",
               "Outputs.VpcID"
             ]
-          },
-          "AllowSSH": {
-            "Ref": "AllowSSH"
-          },
-          "AllowedIPforSSH": {
-            "Ref": "AllowedIPforSSH"
           }
         },
         "TemplateURL": "./SecurityGroup.json"
+      }
+    },
+    "ingressRuleSSH": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": "CreateSSHRule",
+      "Properties": {
+        "Parameters": {
+          "AllowedIPforSSH": {
+            "Ref": "AllowedIPforSSH"
+          },
+          "group": {
+            "Fn::GetAtt": [
+              "securityGroup",
+              "Outputs.SecurityGroupID"
+            ]
+          }
+        },
+        "TemplateURL": "./ingressRuleSSH.json"
       }
     },
     "niosPublicIP": {

@@ -161,6 +161,28 @@
         },
         "Yes"
       ]
+    },
+    "IPforSSH": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AllowedIPforSSH"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "CreateSSHRule": {
+      "Fn::And": [
+        {
+          "Condition": "RemoteAccess"
+        },
+        {
+          "Condition": "IPforSSH"
+        }
+      ]
     }
   },
   "Mappings": {
@@ -461,15 +483,27 @@
           },
           "VpcID": {
             "Ref": "VpcID"
-          },
-          "AllowSSH": {
-            "Ref": "AllowSSH"
-          },
-          "AllowedIPforSSH": {
-            "Ref": "AllowedIPforSSH"
           }
         },
         "TemplateURL": "./SecurityGroup.json"
+      }
+    },
+    "ingressRuleSSH": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Condition": "CreateSSHRule",
+      "Properties": {
+        "Parameters": {
+          "AllowedIPforSSH": {
+            "Ref": "AllowedIPforSSH"
+          },
+          "group": {
+            "Fn::GetAtt": [
+              "securityGroup",
+              "Outputs.SecurityGroupID"
+            ]
+          }
+        },
+        "TemplateURL": "./ingressRuleSSH.json"
       }
     },
     "niosPublicIP": {
@@ -529,8 +563,8 @@
     "nios01": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "Parameters" : {
-          "amiID" : {
+        "Parameters": {
+          "amiID": {
             "Fn::FindInMap": [
               "AMIMap",
               {
@@ -539,7 +573,7 @@
               "AMINUM"
             ]
           },
-          "instanceShape" : {
+          "instanceShape": {
             "Fn::FindInMap": [
               "ShapeMap",
               {
@@ -550,22 +584,22 @@
               }
             ]
           },
-          "nic1" : {
+          "nic1": {
             "Fn::GetAtt": [
               "networkInt1",
               "Outputs.InterfaceID"
             ]
           },
-          "nic2" : {
+          "nic2": {
             "Fn::GetAtt": [
               "networkInt2",
               "Outputs.InterfaceID"
             ]
           },
-          "KeyPair" : {
+          "KeyPair": {
             "Ref": "KeyPair"
           },
-          "iamProfile" : {
+          "iamProfile": {
             "Fn::If": [
               "CreateIAMRole",
               {
@@ -577,13 +611,13 @@
               "None"
             ]
           },
-          "InstanceName" : {
+          "InstanceName": {
             "Ref": "InstanceName"
           },
-          "AllowSSH" : {
-            "Ref" : "AllowSSH"
+          "AllowSSH": {
+            "Ref": "AllowSSH"
           },
-          "cloudLicense" : {
+          "cloudLicense": {
             "Fn::FindInMap": [
               "ModelMap",
               {
@@ -592,7 +626,7 @@
               "CloudLic"
             ]
           },
-          "model" : {
+          "model": {
             "Fn::FindInMap": [
               "ModelMap",
               {
