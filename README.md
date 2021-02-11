@@ -8,6 +8,7 @@
 * Clone the repository to your workstation
 ```
 git clone https://github.com/jpr00/nios852-cloudformation
+
 cd nios852-cloudformation/templates/
 ```
 * Package local paths referenced by template and upload artifacts to S3 using [cloudformation package](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/package.html)
@@ -20,3 +21,6 @@ aws cloudformation package --template-file ./vNIOS_existingVPC_master.json --s3-
 * In the AWS console, navigate to CloudFormation service in your desired region
 * Create new stack
 * Use the Upload template file option to select your packaged template
+
+# Disclaimer
+These templates are currently in testing, using private AMIs. Not yet functional for public use.
